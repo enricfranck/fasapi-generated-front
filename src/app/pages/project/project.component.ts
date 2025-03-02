@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   FormsModule,
   NonNullableFormBuilder,
@@ -17,6 +17,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-project',
@@ -37,7 +38,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
   templateUrl: './project.component.html',
   styleUrl: './project.component.less',
 })
-export class ProjectComponent {
+export class ProjectComponent implements OnInit {
   isVisible = false;
   isVisibleVisualise = false;
   classList: ClassModel[] = [
@@ -96,6 +97,7 @@ export class ProjectComponent {
     },
   ];
   isEditing = false;
+  id?: any;
 
   private fb = inject(NonNullableFormBuilder);
   validateForm = this.fb.group({
@@ -114,7 +116,18 @@ export class ProjectComponent {
     isRequired: this.fb.control(false),
   });
 
-  constructor(private service: AppService) {}
+  constructor(private service: AppService, private route: ActivatedRoute) {
+    console.log(this.route.params);
+  }
+  ngOnInit(): void {
+    this.id = this.route.snapshot.params['project_id'];
+    if (this.id)
+      this.service.openProject(this.id).subscribe((data) => {
+        if (data?.class_model?.length > 0) {
+          this.classList = data.class_model;
+        }
+      });
+  }
 
   headers: string[] = [
     'Name',
@@ -203,10 +216,9 @@ export class ProjectComponent {
 
   handleCreatelVisualise(): void {
     let body = {
-      name: 'testProject',
       class_model: this.classListVisualise,
     };
-    this.service.createProject(body).subscribe((res) => {
+    this.service.createProject(this.id, body).subscribe((res) => {
       console.log('Project created!', res);
       this.isVisibleVisualise = false;
     });

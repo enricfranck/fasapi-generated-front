@@ -37,7 +37,7 @@ export class Project {
   name: string = '';
   path: string = '';
   config?: any;
-  classes: ClassModel[] = [];
+  class_model: ClassModel[] = [];
   created_at?: Date;
   updated_at?: Date;
   deleted_at?: Date;

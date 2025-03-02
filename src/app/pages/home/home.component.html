@@ -25,7 +25,7 @@
       <nz-icon nzType="setting" (click)="editConfiguration(item.id)" />
     </ng-template>
     <ng-template #actionEdit>
-      <nz-icon nzType="edit" />
+      <nz-icon nzType="edit" (click)="editProject(item.id)" />
     </ng-template>
     <ng-template #actionEllipsis>
       <nz-dropdown-menu #menu="nzDropdownMenu">

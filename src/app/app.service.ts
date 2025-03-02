@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../environments/environment';
-import { Project } from './models/project';
+import { ClassModel, Project } from './models/project';
 
 const BASE_URL = environment.apiBaseUrl;
 
@@ -14,13 +14,10 @@ export class AppService {
     Accept: 'application/json',
   });
 
-  createProject(
-    project: any,
-    path: string = '/Users/macbookpro/Desktop/projet'
-  ) {
+  createProject(project_id: any, project: any) {
     let params = new HttpParams();
-    params = params.append('path', path);
-    return this.http.post(`${BASE_URL}/project`, project, {
+    params = params.append('project_id', project_id);
+    return this.http.put(`${BASE_URL}/project`, project, {
       headers: this.headers,
       params,
     });

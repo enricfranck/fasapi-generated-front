@@ -20,6 +20,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzStepsModule } from 'ng-zorro-antd/steps';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -58,7 +59,7 @@ export class HomeComponent implements OnInit {
 
   private fb = inject(NonNullableFormBuilder);
 
-  constructor(private service: AppService) {}
+  constructor(private service: AppService, private router: Router) {}
 
   formFieldsProject = [
     {
@@ -202,7 +203,7 @@ export class HomeComponent implements OnInit {
       controlName: 'smtp_port',
       label: 'SMTP Port',
       placeholder: 'Enter SMTP Port',
-      type: 'text',
+      type: 'number',
       errorMessage: 'Please input your SMTP Port!',
     },
     {
@@ -324,6 +325,11 @@ export class HomeComponent implements OnInit {
       this.validateForm.patchValue(data.config);
       this.isVisible = true;
     });
+  }
+
+  editProject(id: number) {
+    this.id = id;
+    this.router.navigate(['project', id]);
   }
 
   showModal(): void {
