@@ -1,0 +1,267 @@
+<div class="main">
+  <div class="diagram">
+    <div style="display: flex; flex-direction: row; gap: 0.5rem">
+      <button nz-button nzType="primary" (click)="addClass()">
+        Ajouter un class
+      </button>
+
+      <button nz-button nzType="primary" (click)="visualiseDiagram()">
+        Visualise Diagram
+      </button>
+    </div>
+    <div class="class-list">
+      @for (class of classList; track $index; let classIndex= $index) {
+      <div class="class">
+        <div class="class-name">
+          <input
+            type="text"
+            nz-input
+            placeholder="Name"
+            [(ngModel)]="class.name"
+            nzFormatter="uppercase"
+            [readOnly]="class.default"
+          />
+
+          <button nz-button nzType="primary">
+            <nz-icon
+              nzType="eye"
+              nzTheme="outline"
+              (click)="viewClassProperty($index)"
+            ></nz-icon>
+          </button>
+          <button nz-button nzType="primary" (click)="showModal($index)">
+            <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+          </button>
+
+          <button nz-button nzType="primary" [disabled]="class.default">
+            <nz-icon
+              nzType="delete"
+              nzTheme="outline"
+              (click)="removeClass($index)"
+            ></nz-icon>
+          </button>
+        </div>
+
+        <div class="attribute-container">
+          <div class="attribute-body">
+            @for (data of class.attributes; track data;) {
+            <div class="attribute-row">
+              <div class="row-name" nz-tooltip [nzTooltipTitle]="headers[0]">
+                {{ transformName(data.name) }}
+              </div>
+              <div class="row-type" nz-tooltip [nzTooltipTitle]="headers[1]">
+                <span>{{ data.type }} </span>
+                @if (data.length) {
+                <span>({{ data.length }})</span>}
+              </div>
+              <div nz-tooltip [nzTooltipTitle]="headers[2]">
+                @if (data.is_primary) {
+                <nz-icon
+                  nzType="key"
+                  nzTheme="outline"
+                  style="color: darkorange"
+                />
+                } @else {
+                <nz-icon nzType="stop" nzTheme="outline" />
+                }
+              </div>
+              <div nz-tooltip [nzTooltipTitle]="headers[3]">
+                @if (data.is_auto_increment) {
+                <nz-icon nzType="arrow-up" nzTheme="outline" />
+                } @else {
+                <nz-icon nzType="stop" nzTheme="outline" />
+                }
+              </div>
+
+              <div nz-tooltip [nzTooltipTitle]="headers[4]">
+                @if (data.is_indexed) {
+                <nz-icon nzType="node-index" nzTheme="outline" />
+                } @else {
+                <nz-icon nzType="stop" nzTheme="outline" />
+                }
+              </div>
+
+              <div nz-tooltip [nzTooltipTitle]="headers[5]">
+                @if (data.is_unique) {
+                <nz-icon nzType="fullscreen-exit" nzTheme="outline" />
+                } @else {
+                <nz-icon nzType="stop" nzTheme="outline" />
+                }
+              </div>
+              <div
+                nz-tooltip
+                [nzTooltipTitle]="
+                  data.foreign_key
+                    ? headers[6] +
+                      ' ' +
+                      data.foreign_key_class +
+                      '(' +
+                      data.foreign_key +
+                      ')'
+                    : headers[6]
+                "
+              >
+                @if (data.is_foreign) {
+                <nz-icon nzType="key" nzTheme="outline" style="color: gray" />
+                } @else {
+                <nz-icon nzType="stop" nzTheme="outline" />
+                }
+              </div>
+              <div nz-tooltip [nzTooltipTitle]="headers[7]">
+                @if (data.is_required) {
+                <nz-icon nzType="star" nzTheme="outline" />
+                } @else {
+                <nz-icon nzType="stop" nzTheme="outline" />
+                }
+              </div>
+              <div class="row-actions">
+                @if (!data.default) {
+                <nz-icon
+                  nzType="edit"
+                  nzTheme="outline"
+                  (click)="editAttribute($index, classIndex)"
+                />
+                <nz-icon
+                  nzType="delete"
+                  nzTheme="outline"
+                  (click)="deleteAttribute($index, classIndex)"
+                  style="color: rgb(245, 77, 233)"
+                />}@else{
+                <nz-icon nzType="edit" nzTheme="outline" />
+                <nz-icon
+                  nzType="delete"
+                  nzTheme="outline"
+                  style="color: rgb(118, 114, 117)"
+                />
+                }
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+</div>
+
+<nz-modal
+  [(nzVisible)]="isVisible"
+  nzTitle="Add or Update Attributes"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+>
+  <ng-container *nzModalContent>
+    <form
+      nz-form
+      [formGroup]="validateForm"
+      (ngSubmit)="submitForm()"
+      class="login-form"
+    >
+      <nz-form-item>
+        <nz-form-label>Name</nz-form-label>
+        <nz-form-control nzErrorTip="Please input your Attribe Name!">
+          <nz-input-group>
+            <input
+              type="text"
+              nz-input
+              placeholder="Name"
+              formControlName="name"
+            />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Type</nz-form-label>
+        <nz-form-control nzErrorTip="Please select type!">
+          <nz-select
+            formControlName="type"
+            [ngModel]="validateForm.controls['type'].value"
+          >
+            @for (item of attributeTypeList; track $index) {
+            <nz-option [nzValue]="item.value" [nzLabel]="item.label"></nz-option
+            >}
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item *ngIf="validateForm.controls['type'].value === 'String'">
+        <nz-form-label>Length</nz-form-label>
+        <nz-form-control>
+          <input
+            type="number"
+            nz-input
+            placeholder="length"
+            formControlName="length"
+          />
+        </nz-form-control>
+      </nz-form-item>
+      <div class="checkbox">
+        <nz-form-item>
+          <label nz-checkbox formControlName="isPrimary">Primary key</label>
+        </nz-form-item>
+        <nz-form-item>
+          <label nz-checkbox formControlName="isAutoIncrement">A.I</label>
+        </nz-form-item>
+        <nz-form-item>
+          <label nz-checkbox formControlName="isIndexed">Indexed</label>
+        </nz-form-item>
+        <nz-form-item>
+          <label nz-checkbox formControlName="isUnique">Unique</label>
+        </nz-form-item>
+
+        <nz-form-item>
+          <label nz-checkbox formControlName="isRequired">Required</label>
+        </nz-form-item>
+      </div>
+
+      <div class="checkbox">
+        <nz-form-item>
+          <label nz-checkbox formControlName="isForeign">Foreign key</label>
+        </nz-form-item>
+
+        @if (this.validateForm.controls['isForeign'].value) {
+
+        <div class="checkbox" style="width: 75%">
+          <nz-form-control nzErrorTip="Please select type!">
+            <nz-select
+              formControlName="foreignKeyClass"
+              [ngModel]="validateForm.controls['foreignKeyClass'].value"
+              (ngModelChange)="onChangeClass($event)"
+            >
+              @for (item of classList; track $index) { @if (item.name !== '') {
+              <nz-option [nzValue]="item.name" [nzLabel]="item.name"></nz-option
+              >}}
+            </nz-select>
+          </nz-form-control>
+
+          <nz-form-control nzErrorTip="Please select type!">
+            <nz-select
+              formControlName="foreignKey"
+              [ngModel]="validateForm.controls['foreignKey'].value"
+            >
+              @for (item of selectAttributeTypeClass; track $index) { @if
+              (item.name) {
+              <nz-option [nzValue]="item.name" [nzLabel]="item.name"></nz-option
+              >} }
+            </nz-select>
+          </nz-form-control>
+        </div>
+        }
+      </div>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<nz-modal
+  [(nzVisible)]="isVisibleVisualise"
+  nzTitle="Visualisation"
+  (nzOnCancel)="handleCancelVisualise()"
+  (nzOnOk)="handleCreatelVisualise()"
+  [nzWidth]="'60%'"
+>
+  <ng-container *nzModalContent>
+    {{ classListVisualise | json }}
+  </ng-container>
+</nz-modal>

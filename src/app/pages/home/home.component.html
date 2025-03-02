@@ -1,0 +1,155 @@
+<div class="content">
+  <input
+    nz-input
+    placeholder="Rechercher un projet"
+    [(ngModel)]="searchText"
+    class="search"
+  />
+  <div class="site-card-wrapper">
+    @for (item of paginatedProjects; track $index) {
+    <nz-card
+      class="card"
+      [nzCover]="coverTemplate"
+      [nzActions]="[actionSetting, actionEdit, actionEllipsis]"
+    >
+      <nz-card-meta [nzTitle]="item.name" [nzDescription]="item.path">
+        <nz-tag [nzColor]="'#2db7f5'"></nz-tag>
+        <p>Créé le : {{ item.created_at | date }}</p>
+        <p>Mis à jour le : {{ item.updated_at | date }}</p>
+      </nz-card-meta>
+    </nz-card>
+    <ng-template #coverTemplate>
+      <img alt="example" src="assets/images/logo.png" class="images" />
+    </ng-template>
+    <ng-template #actionSetting>
+      <nz-icon nzType="setting" (click)="editConfiguration(item.id)" />
+    </ng-template>
+    <ng-template #actionEdit>
+      <nz-icon nzType="edit" />
+    </ng-template>
+    <ng-template #actionEllipsis>
+      <nz-dropdown-menu #menu="nzDropdownMenu">
+        <ul nz-menu>
+          <li nz-menu-item (click)="deleteProject(item.id)">Supprimer</li>
+          <li nz-menu-item (click)="archiveProject(item.id)">Archiver</li>
+        </ul>
+      </nz-dropdown-menu>
+      <span nz-dropdown [nzDropdownMenu]="menu">
+        <nz-icon nzType="ellipsis" />
+      </span>
+    </ng-template>
+    }
+  </div>
+
+  <nz-pagination
+    [nzPageIndex]="currentPage"
+    [nzTotal]="projects.length"
+    [nzPageSize]="pageSize"
+    (nzPageIndexChange)="onPageChange($event)"
+    class="pagination"
+  ></nz-pagination>
+  <nz-float-button
+    nzShape="square"
+    style="right: 24px"
+    nzType="primary"
+    [nzIcon]="icon"
+    (click)="showModal()"
+  ></nz-float-button>
+  <ng-template #icon>
+    <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+  </ng-template>
+</div>
+<nz-modal
+  [(nzVisible)]="isVisible"
+  nzTitle="Create or update a project"
+  (nzOnCancel)="handleCancel()"
+>
+  <div *nzModalContent class="step-container">
+    <div class="steps-content">
+      <div class="title">{{ index }}</div>
+      <form
+        nz-form
+        [nzLayout]="'inline'"
+        [formGroup]="validateForm"
+        (ngSubmit)="submitForm()"
+        class="form"
+      >
+        @if (current == 0) {
+        <div class="first-step">
+          <nz-form-item class="item" *ngFor="let field of formFieldsProject">
+            <nz-form-label [nzRequired]="field.require">{{
+              field.label
+            }}</nz-form-label>
+            <nz-form-control class="input">
+              <nz-input-group>
+                <input
+                  [formControlName]="field.controlName"
+                  nz-input
+                  [type]="field.type"
+                  [placeholder]="field.placeholder"
+                />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        } @if (current > 0 && current < 2) {
+        <div class="first-step">
+          <nz-form-item class="item" *ngFor="let field of formFields">
+            <nz-form-label [nzRequired]="field.require">{{
+              field.label
+            }}</nz-form-label>
+            <nz-form-control class="input">
+              <nz-input-group>
+                <input
+                  [formControlName]="field.controlName"
+                  nz-input
+                  [type]="field.type"
+                  [placeholder]="field.placeholder"
+                />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        } @if (current === 2) {
+        <div class="first-step">
+          <nz-form-item class="item" *ngFor="let field of anotherFormFields">
+            <nz-form-label>{{ field.label }}</nz-form-label>
+            <nz-form-control class="input">
+              <nz-input-group>
+                <input
+                  [formControlName]="field.controlName"
+                  nz-input
+                  [type]="field.type"
+                  [placeholder]="field.placeholder"
+                />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        }
+      </form>
+    </div>
+  </div>
+  <div *nzModalFooter="">
+    <div class="steps-action">
+      @if (current > 0) {
+      <button nz-button nzType="default" (click)="pre()">
+        <span>Previous</span>
+      </button>
+      } @if (current < 2) {
+      <button nz-button nzType="default" (click)="next()">
+        <span>Next</span>
+      </button>
+      } @if (current === 2) {
+      <button
+        nz-button
+        nzType="primary"
+        (click)="handleOk()"
+        [disabled]="!validateForm.valid"
+      >
+        <span>Done</span>
+      </button>
+      }
+    </div>
+  </div>
+</nz-modal>
