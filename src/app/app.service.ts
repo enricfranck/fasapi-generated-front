@@ -14,9 +14,17 @@ export class AppService {
     Accept: 'application/json',
   });
 
-  createProject(project_id: any, project: any) {
+  createProject(
+    project_id: any,
+    project: any,
+    write_project: boolean = false,
+    migrationMessage: string = ''
+  ) {
     let params = new HttpParams();
-    params = params.append('project_id', project_id);
+    params = params
+      .append('project_id', project_id)
+      .append('write_project', write_project)
+      .append('migration_message', migrationMessage);
     return this.http.put(`${BASE_URL}/project`, project, {
       headers: this.headers,
       params,
@@ -48,6 +56,14 @@ export class AppService {
   updateConfig(id: number, body: any) {
     let params = new HttpParams().append('project_id', id);
     return this.http.put<Project>(`${BASE_URL}/project/config`, body, {
+      headers: this.headers,
+      params,
+    });
+  }
+
+  deleteProject(id: number) {
+    let params = new HttpParams().append('project_id', id);
+    return this.http.delete<Project>(`${BASE_URL}/project`, {
       headers: this.headers,
       params,
     });

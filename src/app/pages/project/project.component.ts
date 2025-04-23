@@ -18,6 +18,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UppercaseFirstLetterDirective } from '../../uppercase-first-letter.directive';
 
 @Component({
   selector: 'app-project',
@@ -34,6 +35,7 @@ import { ActivatedRoute, Router } from '@angular/router';
     NzSelectModule,
     NzCheckboxModule,
     CommonModule,
+    UppercaseFirstLetterDirective,
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.less',
@@ -99,6 +101,9 @@ export class ProjectComponent implements OnInit {
   isEditing = false;
   id?: any;
 
+  writeProject: boolean = false;
+  migrationMessage?: string;
+
   private fb = inject(NonNullableFormBuilder);
   validateForm = this.fb.group({
     name: this.fb.control('', [Validators.required]),
@@ -144,6 +149,8 @@ export class ProjectComponent implements OnInit {
   selectedAttributeIndex: number = 0;
   selectAttributeTypeClass: Attributes[] = [];
   classListVisualise: any[] = [];
+  deleted_class: string[] = [];
+  updated_class: string[] = [];
 
   attributeTypeList = [
     { label: 'String', value: AttributeType.STRING },
@@ -168,6 +175,23 @@ export class ProjectComponent implements OnInit {
         }
       });
     }
+  }
+
+  saveDiagram() {
+    this.classListVisualise = this.classList.filter(
+      (item) => item.name.length > 0
+    );
+    let body = {
+      project_in: {
+        class_model: this.classListVisualise,
+      },
+      updated_class: [],
+      deleted_class: [],
+    };
+    this.service.createProject(this.id, body).subscribe((res) => {
+      console.log('Project created!', res);
+      this.isVisibleVisualise = false;
+    });
   }
 
   showModal(index: number): void {
@@ -202,7 +226,7 @@ export class ProjectComponent implements OnInit {
     this.addAttribute();
   }
 
-  visualiseDiagram(): void {
+  saveProject(): void {
     this.isVisibleVisualise = true;
     this.classListVisualise = this.classList.filter(
       (item) => item.name.length > 0
@@ -215,13 +239,22 @@ export class ProjectComponent implements OnInit {
   }
 
   handleCreatelVisualise(): void {
+    this.classListVisualise = this.classList.filter(
+      (item) => item.name.length > 0
+    );
     let body = {
-      class_model: this.classListVisualise,
+      project_in: {
+        class_model: this.classListVisualise,
+      },
+      updated_class: this.updated_class,
+      deleted_class: this.deleted_class,
     };
-    this.service.createProject(this.id, body).subscribe((res) => {
-      console.log('Project created!', res);
-      this.isVisibleVisualise = false;
-    });
+    this.service
+      .createProject(this.id, body, true, this.migrationMessage)
+      .subscribe((res) => {
+        console.log('Project created!', res);
+        this.isVisibleVisualise = false;
+      });
   }
 
   handleCancel(): void {
@@ -234,6 +267,7 @@ export class ProjectComponent implements OnInit {
   }
   removeClass(index: number): void {
     this.classList.splice(index, 1);
+    this.deleted_class.push(this.classList[index].name);
   }
   addAttribute(): void {
     let item: Attributes = {
@@ -308,6 +342,13 @@ export class ProjectComponent implements OnInit {
       foreignKeyClass:
         this.classList[classIndex].attributes[attributeIndex].foreign_key_class,
     });
+    let classValue = this.classList[classIndex].name;
+    if (classValue) {
+      this.updated_class = this.updated_class.filter((item) => {
+        item.toLowerCase() !== classValue.toLocaleLowerCase();
+      });
+      this.updated_class.push(classValue);
+    }
   }
 
   transformName(name: string = '') {

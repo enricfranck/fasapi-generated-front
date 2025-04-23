@@ -307,7 +307,10 @@ export class HomeComponent implements OnInit {
   }
 
   deleteProject(id: number) {
-    // Implémentez la logique pour supprimer le projet
+    this.service.deleteProject(+id).subscribe((data) => {
+      console.log(data);
+      this.getProjects();
+    });
   }
 
   archiveProject(id: number) {

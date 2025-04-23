@@ -5,8 +5,12 @@
         Ajouter un class
       </button>
 
-      <button nz-button nzType="primary" (click)="visualiseDiagram()">
-        Visualise Diagram
+      <button nz-button nzType="primary" (click)="saveDiagram()">
+        Save Diagram
+      </button>
+
+      <button nz-button nzType="primary" (click)="saveProject()">
+        Save Project
       </button>
     </div>
     <div class="class-list">
@@ -20,6 +24,7 @@
             [(ngModel)]="class.name"
             nzFormatter="uppercase"
             [readOnly]="class.default"
+            appUppercaseFirstLetter
           />
 
           <button nz-button nzType="primary">
@@ -262,6 +267,11 @@
   [nzWidth]="'60%'"
 >
   <ng-container *nzModalContent>
-    {{ classListVisualise | json }}
+    <input
+      type="text"
+      nz-input
+      placeholder="Name"
+      [(ngModel)]="migrationMessage"
+    />
   </ng-container>
 </nz-modal>
