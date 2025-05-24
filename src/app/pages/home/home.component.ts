@@ -70,14 +70,6 @@ export class HomeComponent implements OnInit {
       errorMessage: 'Please input your Project Name!',
       require: true,
     },
-    {
-      controlName: 'path',
-      label: 'Project Path',
-      placeholder: 'Enter Project Path',
-      type: 'text',
-      errorMessage: 'Please input your Project Path!',
-      require: true,
-    },
   ];
 
   formFields = [
@@ -246,7 +238,6 @@ export class HomeComponent implements OnInit {
 
   validateForm = this.fb.group({
     name: this.fb.control('', [Validators.required]),
-    path: this.fb.control('', [Validators.required]),
 
     mysql_host: this.fb.control('localhost', [Validators.required]),
     mysql_port: this.fb.control(3306, [Validators.required]),
@@ -265,13 +256,46 @@ export class HomeComponent implements OnInit {
     server_host: this.fb.control(''),
     secret_key: this.fb.control(''),
     smtp_tls: this.fb.control(false),
-    smtp_port: this.fb.control(''),
+    smtp_port: this.fb.control(587),
     smtp_host: this.fb.control(''),
     smtp_user: this.fb.control(''),
     smtp_password: this.fb.control(''),
     smtp_server: this.fb.control(''),
     emails_from_email: this.fb.control(''),
   });
+
+  autofillFormFields(projectName: string): void {
+    const normalized = projectName.toLowerCase();
+
+    this.validateForm.patchValue({
+      // MySQL Configuration
+      mysql_host: 'localhost',
+      mysql_port: 3306,
+      mysql_user: `${normalized}_user`,
+      mysql_database: `${normalized}_db`,
+      mysql_password: `${normalized}_password`,
+
+      // Superuser
+      first_superuser: `supper_admin@${normalized}.com`,
+      first_name_superuser: 'Super',
+      last_name_superuser: 'Admin',
+      first_superuser_password: `${normalized}_admin123`,
+
+      // Another Configuration
+      domain: 'localhost',
+      stack_name: `${normalized}_stack`,
+      server_name: `${normalized}_server`,
+      server_host: `http://${normalized}.com`,
+      secret_key: `secret_${normalized}_key_123`,
+      smtp_tls: true,
+      smtp_port: 587,
+      smtp_host: `smtp.${normalized}.com`,
+      smtp_user: `smtp_user@${normalized}.com`,
+      smtp_password: `${normalized}_smtp_password`,
+      smtp_server: 'smtp.gmail.com',
+      emails_from_email: `noreply@${normalized}.com`,
+    });
+  }
 
   submitForm(): void {
     console.log('submit', this.validateForm.value);
@@ -304,6 +328,13 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     this.getProjects();
+    this.validateForm
+      .get('name')
+      ?.valueChanges.subscribe((projectName: string) => {
+        if (projectName && projectName.trim().length > 0) {
+          this.autofillFormFields(projectName.trim());
+        }
+      });
   }
 
   deleteProject(id: number) {
@@ -324,7 +355,6 @@ export class HomeComponent implements OnInit {
     this.current = 0;
     this.service.openProject(id).subscribe((data) => {
       this.validateForm?.get('name')?.setValue(data?.name);
-      this.validateForm?.get('path')?.setValue(data?.path);
       this.validateForm.patchValue(data.config);
       this.isVisible = true;
     });
@@ -348,7 +378,6 @@ export class HomeComponent implements OnInit {
   handleOk(): void {
     let body = {
       name: this.validateForm?.value.name,
-      path: this.validateForm?.value.path,
       config: this.validateForm?.value,
     };
     if (this.isEdit) {
